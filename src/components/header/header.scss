@@ -1,0 +1,43 @@
+@import "../../css/var";
+
+.header {
+  width: 100%;
+  //position: absolute;
+  background: white;
+}
+
+.top {
+  height: $headerTopHeight;
+  width: 100%;
+}
+
+.title-box {
+  position: relative;
+  text-align: center;
+  height: $headerHeight;
+  line-height: $headerHeight;
+  width: 100%;
+  font-size: .14rem;
+}
+
+.title {
+  display: inline-block;
+  text-align: center;
+  font-size: .16rem;
+}
+
+.left-btn-icon {
+  position: absolute;
+  left: .1rem;
+  height: $headerHeight;
+  line-height: $headerHeight;
+  min-width: .3rem;
+  font-size: .16rem;
+}
+
+.right-btn {
+  position: absolute;
+  right: .1rem;
+  height: $headerHeight;
+  line-height: $headerHeight;
+}

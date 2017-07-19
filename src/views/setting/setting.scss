@@ -1,0 +1,93 @@
+@import '../../css/var';
+
+.setting {
+  width: 100%;
+  height: 100%;
+  font-size: .14rem;
+  background: #F2F3F5;
+  input[type=text], select {
+    display: inline-block;
+    border: none;
+    width: 100%;
+    background: transparent;
+    text-align: right;
+  }
+}
+
+.form {
+  padding: 0 .15rem;
+  background: white;
+}
+
+.preview {
+  color: #2ca89d;
+  position: absolute;
+  right: .6rem;
+}
+
+.content {
+  border-top: 1px solid #ccc;
+}
+
+.form-item {
+  display: table;
+  border-collapse: collapse;
+  width: 100%;
+  height: $formItemHeight;
+  line-height: $formItemHeight;
+  border-bottom: 1px solid #ccc;
+}
+
+.form-item > div {
+  display: table-cell;
+}
+
+.label {
+  width: 23%;
+  padding-right: .1rem;
+}
+
+.reset-style {
+  border: none;
+  appearance: inherit;
+}
+
+.reset-style > option:first-child {
+  display: none;
+}
+
+.arrowRight {
+  background: url("../../images/next.png") no-repeat right center/auto 50%;
+  background-origin: content-box;
+}
+
+.value {
+  text-align: right;
+}
+
+.value > * {
+  width: 100%;
+}
+
+.next {
+  display: inline-block;
+  float: right;
+  width: .2rem;
+  height: $formItemHeight;
+}
+
+.cancel {
+  height: .25rem;
+  line-height: .25rem;
+  padding: .05rem .15rem;
+  color: $tipsColor;
+}
+
+.no-border {
+  border: none;
+}
+
+.tips {
+  padding: .05rem .15rem;
+  color: $tipsColor;
+}
