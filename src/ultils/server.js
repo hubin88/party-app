@@ -4,7 +4,7 @@
 
 // import 'fetch-ie8';
 
-export function postJSON(url, obj) {
+export function POST(url, obj) {
   const postData = (typeof obj === 'object') ? JSON.stringify(obj) : obj;
   return fetch(url, {
     method: 'post',
@@ -16,9 +16,19 @@ export function postJSON(url, obj) {
   }).then(res => res.json()).then(rs => rs);
 }
 
-export function getJSON(url) {
+export function GET(url) {
   return fetch(url, {
     method: 'get',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  }).then(res => res.json()).then(rs => rs);
+}
+
+export function DELETE(url) {
+  return fetch(url, {
+    method: 'delete',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',

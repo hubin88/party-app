@@ -56,7 +56,7 @@ module.exports = {
           cacheDirectory: true,
         },
       },
-      { test: /\.(jpg|gif|png|svg|ico)$/, loader: 'file-loader?name=images/[name].[ext]' },
+      { test: /\.(jpg|gif|png|svg|ico|jpeg)$/, loader: 'file-loader?name=images/[name].[ext]' },
       { test: /\.(ttf|eot|woff|woff2)(\?.+)?$/, loader: 'file-loader?name=[hash:12].[ext]' },
       {
         test: /\.scss$/,

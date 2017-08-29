@@ -3,6 +3,13 @@
  */
 
 /*
-* 开发地址
+* 开发环境地址
 * */
-var URL='api.hboffice.cn';
+var url='api.hboffice.cn';
+
+
+/*
+ *正式环地址
+* */
+
+// var url='api.hboffice.cn';

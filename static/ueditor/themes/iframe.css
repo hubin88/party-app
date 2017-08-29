@@ -1,0 +1,7 @@
+/*可以在这里添加你自己的css*/
+img.upload-img {
+    display: block;
+    width: 95%;
+    height: auto;
+    margin: 0 auto;
+}

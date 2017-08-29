@@ -45,42 +45,66 @@ body, #root {
   transition: all .6s ease;
 }
 
-.gathering .el-icon-caret-top {
-  display: none;
+.edui-default .edui-dialog-caption {
+  position: absolute;
 }
 
-span.el-date-editor {
-  width: 50%;
+.el-upload-list__item {
+  display: inline-block;
+  width: 48%;
 }
 
-div.el-date-editor {
+.el-upload-list__item:nth-child(2n+1) {
+  margin-right: 4%;
+}
+
+img.upload-img {
+  display: block;
+  width: 95%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.setting-switch label {
   width: auto !important;
 }
 
-.el-date-editor input.el-input__inner {
-  padding: 0 !important;
-  text-align: left !important;
+//.setting-switch .el-form-item__content, .register-required .el-form-item__content {
+//  text-align: right;
+//}
+
+.el-date-editor.el-input {
+  width: 100%!important;
 }
 
-.el-input__inner {
-  padding-left: 0 !important;
+.el-time-panel__footer {
+  display: none;
 }
 
-.gathering .el-upload {
-  transform: scale(.8, .8);
+.avatar-uploader {
+  height: 200px;
+  vertical-align: top;
 }
-
-.gathering .el-upload-list__item {
-  transform: scale(.8, .8);
-  margin: 0;
+.avatar-uploader img{
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-
-.ellipsis .el-input__inner {
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  width: 150px;
+  height:150px;
+  cursor: pointer;
+  position: relative;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
-.el-input.is-disabled .el-input__inner {
-  background: #fff !important;
+.avatar-uploader .avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 150px;
+  height: 150px;
+  line-height: 150px;
+  text-align: center;
 }

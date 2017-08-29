@@ -4,177 +4,162 @@
 
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { Input, DatePicker, TimePicker, Switch } from 'element-react';
+import { browserHistory } from 'react-router';
+import { Form, Layout, Input, DatePicker, TimePicker, Switch, Button } from 'element-react';
 import { setFormValue } from '../../model/action';
 import Header from '../../components/header/header';
 import './setting.scss';
 
 class Setting extends Component {
-  static propTypes = {
-    hideSetting: PropTypes.func,
-  };
-
   constructor(props) {
     super(props);
     this.state = {
-      phone: '',
-      registerNumber: '',
-      endDate: null,
-      endTime: null,
-      registerRequired: false,
-      phoneRequired: false,
-      idCardRequired: false,
-      registrationSettings: '',
+      name: true,
+      rules: {
+        phone: [
+          { required: false, trigger: 'blur' },
+          {
+            validator: (rule, value, callback) => {
+              const regTel = /(^1[34578]{1}[0-9]{9}$)/;
+              if (regTel.test(value) || value === '') {
+                callback();
+              } else {
+                callback(new Error('电话不正确'));
+              }
+            },
+          },
+        ],
+      },
     };
   }
 
-  onChange = () => {
-    const keys = ['phone', 'registerNumber', 'endDate', 'endTime', 'registerRequired', 'phoneRequired', 'idCardRequired'];
-    const obj = {};
-    let flag = false;
-    keys.forEach((item) => {
-      obj[item] = this.state[item];
-      if (obj[item]) {
-        flag = true;
-      }
-    });
-    console.log(flag);
-    if (flag) {
-      obj.registrationSettings = '已设置';
-    } else {
-      obj.registrationSettings = '';
-    }
+  onChange = (key, value) => {
+    const obj = { [key]: value };
     this.props.dispatch(setFormValue(obj));
   };
   back = () => {
-    this.props.hideSetting();
+    browserHistory.push('/register');
   };
-  next = () => {
-    this.onChange();
-    this.props.hideSetting();
-  };
-
-  handleChange = (key, val) => {
-    this.setState({
-      [key]: val,
-    }, () => {
-      if (!this.state.registerRequired) {
-        this.setState({
-          phoneRequired: false,
-          idCardRequired: false,
-        });
-      }
-    });
+  onSubmit = () => {
+    browserHistory.push('/description');
   };
 
   render() {
-    console.log(this.props.appState);
+    const { appState } = this.props;
     return (
       <div styleName="setting" className="">
         <Header
-          title="聚会详情"
+          title="报名设置"
           leftBtnCallBack={this.back}
-          rightBtnCallBack={this.next}
         />
-        <div styleName="content">
-          <form styleName="form">
-            <div styleName="form-item">
-              <div styleName="label">咨询电话</div>
-              <div styleName="value">
-                <Input
-                  type="text"
-                  placeholder="请输入咨询电话"
-                  value={this.state.phone}
-                  onChange={value => this.handleChange('phone', value)}
-                />
+        <Form labelWidth="120" rules={this.state.rules} model={appState} ref={(ref) => { this.form = ref; }}>
+          <Form.Item label="主办方联系方式" prop="phone">
+            <Input
+              type="text"
+              placeholder="请输入咨询电话"
+              value={appState.phone}
+              onChange={(value) => { this.onChange('phone', value); }}
+            />
+          </Form.Item>
+          <Form.Item label="活动人数限制">
+            <Input
+              type="number"
+              placeholder="默认无限制"
+              min={0}
+              value={appState.registerNumber}
+              onChange={(value) => {
+                if (value < 0) {
+                  value = 0;
+                }
+                this.onChange('registerNumber', value);
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="报名截止时间">
+            <span style={{ marginRight: '10px' }}>活动结束前均可报名</span>
+            <Switch
+              value={appState.isSetRegisterEnd}
+              onColor="#62C0C1"
+              onChange={(value) => {
+                this.onChange('isSetRegisterEnd', value);
+              }}
+            />
+            {
+              appState.isSetRegisterEnd ? null :
+              <div>
+                <Layout.Col span="11">
+                  <DatePicker
+                    value={appState.endDate}
+                    placeholder="截止日期"
+                    onChange={(value) => {
+                      this.onChange('endDate', value);
+                    }}
+                    disabledDate={time => time.getTime() < Date.now() - 8.64e7}
+                  />
+                </Layout.Col>
+                <Layout.Col span="2">&nbsp;</Layout.Col>
+                <Layout.Col span="11">
+                  <TimePicker
+                    placeholder="截止时间"
+                    value={appState.endTime}
+                    onChange={(value) => {
+                      this.onChange('endTime', value);
+                    }}
+                  />
+                </Layout.Col>
               </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">人数限制</div>
-              <div styleName="value">
-                <Input
-                  type="text"
-                  placeholder="默认无限制"
-                  value={this.state.registerNumber}
-                  onChange={value => this.handleChange('registerNumber', value)}
-                />
-              </div>
-            </div>
-            <div styleName="form-item no-border">
-              <div styleName="label">截止时间</div>
-              <div styleName="value">
-                <DatePicker
-                  value={this.state.endDate}
-                  placeholder="选择日期"
-                  onChange={(value) => {
-                    this.handleChange('endDate', value);
-                  }}
-                  disabledDate={time => time.getTime() < Date.now() - 8.64e7}
-                />
-                <TimePicker
-                  placeholder="选择时间"
-                  value={this.state.endTime}
-                  onChange={(value) => {
-                    this.handleChange('endTime', value);
-                  }}
-                />
-              </div>
-            </div>
-          </form>
+            }
+          </Form.Item>
           <div styleName="cancel">报名截止之前用户可以随时取消报名</div>
-          <form styleName="form">
-            <div styleName="form-item no-border">
-              <div styleName="label" style={{ width: 'auto' }}>设置用户报名时的必填项</div>
-              <div styleName="value" style={{ textAlign: 'right' }}>
+          <Form.Item label="设置用户报名时的必填项" className="setting-switch">
+            <Switch
+              value={appState.registerRequired}
+              onColor="#62C0C1"
+              onChange={(value) => {
+                this.onChange('registerRequired', value);
+                if (!value) {
+                  this.onChange('phoneRequired', false);
+                  this.onChange('idCardRequired', false);
+                }
+              }}
+            />
+          </Form.Item>
+          {appState.registerRequired ?
+            <div className="register-required">
+              <Form.Item label="姓名">
                 <Switch
-                  value={this.state.registerRequired}
+                  value={this.state.name}
                   onColor="#62C0C1"
-                  onText=""
-                  offText=""
-                  onChange={(value) => {
-                    this.handleChange('registerRequired', value);
+                  onChange={() => {
+                    this.setState({
+                      name: true,
+                    });
                   }}
                 />
-              </div>
-            </div>
-          </form>
-          {this.state.registerRequired ?
-            <div>
-              <form styleName="form" style={{ marginTop: '.1rem' }}>
-                <div styleName="form-item">
-                  <div styleName="label">姓名</div>
-                </div>
-                <div styleName="form-item">
-                  <div styleName="label">手机号</div>
-                  <div styleName="value">
-                    <Switch
-                      value={this.state.phoneRequired}
-                      onColor="#62C0C1"
-                      onText=""
-                      offText=""
-                      onChange={(value) => {
-                        this.handleChange('phoneRequired', value);
-                      }}
-                    />
-                  </div>
-                </div>
-                <div styleName="form-item no-border">
-                  <div styleName="label">身份证</div>
-                  <div styleName="value">
-                    <Switch
-                      value={this.state.idCardRequired}
-                      onColor="#62C0C1"
-                      onText=""
-                      offText=""
-                      onChange={(value) => {
-                        this.handleChange('idCardRequired', value);
-                      }}
-                    />
-                  </div>
-                </div>
-              </form>
+              </Form.Item>
+              <Form.Item label="手机号">
+                <Switch
+                  value={appState.phoneRequired}
+                  onColor="#62C0C1"
+                  onChange={(value) => {
+                    this.onChange('phoneRequired', value);
+                  }}
+                />
+              </Form.Item>
+              <Form.Item label="身份证">
+                <Switch
+                  value={appState.idCardRequired}
+                  onColor="#62C0C1"
+                  onChange={(value) => {
+                    this.onChange('idCardRequired', value);
+                  }}
+                />
+              </Form.Item>
               <div styleName="tips">以上三项，必须设置费用后才能生效</div>
             </div> : null}
+        </Form>
+        <div styleName="primary">
+          <Button type="primary" onClick={this.onSubmit}>确定</Button>
         </div>
       </div>
     );
@@ -186,4 +171,5 @@ function mapStateToProps(state) {
     appState: state.appState,
   };
 }
+
 export default connect(mapStateToProps)(Setting);

@@ -1,0 +1,34 @@
+/* stylelint-disable */
+.preview-box {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #aaa;
+  position: relative;
+}
+
+
+.clip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
+.edit{
+  border: 1px solid #ccc;
+}
+.preview {
+  display: block;
+}
+.img-content{
+  width: 150px;
+  height:150px;
+  &>img{
+    display: inline-block;
+    width: 100%;
+    height:100%;
+  }
+}
+.range-container {
+  text-align: center;
+  margin-top: 10px;
+}

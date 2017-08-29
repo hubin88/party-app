@@ -1,77 +1,61 @@
 @import '../../css/var';
 
 .gathering {
-  width: 100%;
+  max-width: 8rem;
   height: 100%;
+  margin: 0 auto;
   font-size: .14rem;
-  input, select {
-    display: inline-block;
-    border: none;
-    width: 100%;
-    background: transparent;
-    text-align: left;
-  }
-  input[type=file] {
-    display: none;
-  }
 }
 
-.form {
-  margin-bottom: .2rem;
+.cancel {
+  height: .25rem;
+  line-height: .25rem;
+  color: $tipsColor;
 }
 
-.preview {
-  color: #2ca89d;
-  position: absolute;
-  right: .6rem;
+.tips {
+  padding: .05rem 0;
+  color: $tipsColor;
 }
 
-.content {
-  padding-left: 10px;
-  border-top: 1px solid #ccc;
-}
-
-.form-item {
-  display: table;
-  border-collapse: collapse;
+.preview-box {
   width: 100%;
-  height: $formItemHeight;
-  line-height: $formItemHeight;
+  height: 600px;
+  border: 1px solid #aaa;
+  position: relative;
 }
 
-.form-item > div {
-  display: table-cell;
+
+.clip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
+.edit{
+  border: 1px solid #ccc;
+  margin: 5px auto;
+  display: block;
+}
+.preview {
+  display: block;
+}
+.img-content{
+  width: 150px;
+  height:150px;
+  &>img{
+    display: inline-block;
+    width: 100%;
+    height:100%;
+  }
+}
+.range-container {
+  text-align: center;
+  margin-top: 10px;
 }
 
-.label {
-  width: 23%;
-  padding-right: .1rem;
-}
-
-.reset-style {
-  border: none;
-  appearance: inherit;
-}
-
-.reset-style > option:first-child {
-  display: none;
-}
-
-.value {
-  padding-right: 20px;
-  border-bottom: 1px solid #ccc;
-}
-.arrowRight{
-  background: url("../../images/next.png") no-repeat right center/auto 50%;
-  background-origin: content-box;
-}
-.value > * {
-  width: calc(100% - 15px);
-}
-
-.next {
-  display: inline-block;
-  float: right;
-  width: .2rem;
-  height: $formItemHeight;
+.primary {
+  button {
+    display: inline-block;
+  }
 }

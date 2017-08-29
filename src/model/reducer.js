@@ -4,30 +4,33 @@ import * as ActionTypes from './action-types';
 
 const initData = {
   /*
-   * 详情页的所有数据
-   * */
-  details: {},
-  registerList: [],
-  commentList: [],
+  * 登陆页
+  * */
+  userName: '',
+  password: '',
+  loginData: '',
   /*
-   * 发起聚会页面
+   * 发起活动页面
    * */
-  type: '', // 聚会类型
-  theme: '', // 聚会主题
-  address: '', // 聚会地址
-  date: null, // 聚会开始日期
-  time: null, // 聚会开始时间
-  money: '', // 聚会费用
-  registrationSettings: '', // 报名设置
-  partyDescription: '', // 聚会描述
-  partySlogan: '', // 聚会口号
+  theme: '', // 活动主题
+  imageUrl: '', // 活动封面
+  address: '', // 活动地址
+  dateStart: null, // 活动开始日期
+  timeStart: null, // 活动开始时间
+  dateEnd: null, // 活动结束日期
+  timeEnd: null, // 活动结束时间
+  type: '', // 活动类型
+  payType: '免费', // 活动费用方式
+  money: '',
+  partyDescription: '', // 活动描述
   /*
    * 报名设置页面
    * */
   phone: '', // 设置咨询电话
   registerNumber: '', // 设置报名人数
-  endDate: null, // 设置聚会结束日期
-  endTime: null, // 设置聚会结束时间
+  isSetRegisterEnd: true, // 是否使用默认时间
+  endDate: null, // 设置活动结束日期
+  endTime: null, // 设置活动结束时间
   registerRequired: false, // 是否设置用户报名必填项
   phoneRequired: false, // 用户报名是否需要填手机号码
   idCardRequired: false, // 用户报名是否需要填身份证

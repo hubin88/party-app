@@ -63,11 +63,12 @@ export function dateFormat(d, format = 'yyyy-MM-dd') {
     ss: (`${date.getSeconds() + 100}`).substr(1),
   };
   try {
-    return format.replace(/(yyyy|MM?|dd?|HH?|ss?|mm?)/g, f => dict[f]);
+    return format.replace(/(yyyy|MM?|dd?|HH?|mm?|ss?)/g, f => dict[f]);
   } catch (e) {
     return '';
   }
 }
+
 export function timeDifference(specifiedDate) {
   if (!specifiedDate) return '';
   const nowTime = new Date().getTime();
@@ -101,6 +102,7 @@ export function timeDifference(specifiedDate) {
   }
   return '刚刚';
 }
+
 // 日期处理
 export class Dates {
   static getNow(dateType) {
@@ -145,6 +147,7 @@ export class Dates {
     return Dates.getThisWeek(0, dateType, weekType);
   }
 }
+
 //
 // // 获取系统参数
 // export function getSystem() {
@@ -215,18 +218,21 @@ export function setStyle(obj, json) {
     o.style[item] = json[item];
   });
 }
+
 export function getStyle(obj, name) {
   if (obj.currentStyle) {
     return obj.currentStyle[name];// IE下获取非行间样式
   }
   return getComputedStyle(obj, false)[name];// FF、Chorme下获取非行间样式
 }
+
 export function getQueryString(name) {
   const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`, 'i');
   const r = location.search.substr(1).match(reg);
   if (r != null) return unescape(decodeURI(r[2]));
   return null;
 }
+
 export function removeWrap() {
   const wrap = document.getElementById('wrap');
   wrap.parentNode.parentNode.removeChild(wrap.parentNode);
@@ -239,6 +245,7 @@ export function getFileName() {
   const filename = pathname.substring(last, start);
   return filename;
 }
+
 // cookie处理
 // export class Cookie {
 //   static setCookie(name, val, option) {
@@ -279,6 +286,7 @@ function isEmpty(strValue) {
   }
   return false;
 }
+
 // 倒计时
 export const timer = (id) => {
   let t = 60;
@@ -366,6 +374,7 @@ export const check = {
     },
   },
 };
+
 // 图片加载
 export function loadImage(urlArr) {
   urlArr.forEach((item) => {

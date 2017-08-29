@@ -6,8 +6,9 @@ import { syncHistoryWithStore } from 'react-router-redux';
 import thunkMiddleware from 'redux-thunk';
 import rootReducer from './model/reducer';
 import App from './app';
-import Party from './views/party';
-import Details from './views/details/details';
+import Gathering from './views/gathering/gathering';
+import Login from './views/login/login';
+import Description from './views/description/description';
 
 const store = DEBUG ? createStore(
   rootReducer,
@@ -23,8 +24,9 @@ const StoreWrap = () => (
   <Provider store={store}>
     <Router history={history}>
       <Route path="/" component={App}>
-        <Route path="party" component={Party} />
-        <Route path="party/detail/:partyId/user/:userId" component={Details} />
+        <Route path="login" component={Login} />
+        <Route path="register" component={Gathering} />
+        <Route path="description" component={Description} />
       </Route>
     </Router>
   </Provider>

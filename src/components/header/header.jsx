@@ -16,7 +16,7 @@ export default class Header extends Component {
   };
   static defaultProps = {
     title: '',
-    hasTop: true,
+    hasTop: false,
     hasLeftBtnIcon: false,
     rightBtnTxt: '',
     styles: {},
@@ -45,7 +45,7 @@ export default class Header extends Component {
               <i
                 styleName="left-btn-icon"
                 className="el-icon-arrow-left"
-                onTouchEnd={this.leftBtnClick}
+                onClick={this.leftBtnClick}
               /> : null
           }
           <div styleName="title">{title}</div>

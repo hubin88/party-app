@@ -4,10 +4,25 @@
 
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { Input, Select, DatePicker, TimePicker, Upload } from 'element-react';
+import {
+  Input,
+  Form,
+  Button,
+  Select,
+  DatePicker,
+  TimePicker,
+  Layout,
+  Radio,
+  Switch,
+  Upload,
+  Dialog,
+} from 'element-react';
 import './gathering.scss';
-import Header from '../../components/header/header';
+import { browserHistory } from 'react-router';
 import { setFormValue } from '../../model/action';
+import Header from '../../components/header/header';
+import { GET } from '../../ultils/server';
+import { dateFormat } from '../../ultils/tools';
 import Tips from '../../components/tip/tips';
 
 class Gathering extends Component {
@@ -17,228 +32,645 @@ class Gathering extends Component {
     showDescription: PropTypes.func,
   };
   static defaultProps = {
-    typeOptions: [{
-      value: '选项1',
-      label: '黄金糕',
-    }, {
-      value: '选项2',
-      label: '双皮奶',
-    }, {
-      value: '选项3',
-      label: '蚵仔煎',
-    }, {
-      value: '选项4',
-      label: '龙须面',
-    }, {
-      value: '选项5',
-      label: '北京烤鸭',
-    }],
-    moneyOptions: [{
-      value: '1',
-      label: 'AA',
-    }, {
-      value: '2',
+    payOptions: [{
+      value: 0,
       label: '免费',
     }, {
-      value: '3',
+      value: 1,
       label: '我买单',
     }, {
-      value: '4',
-      label: '设置费用',
-    }],
-    sloganOptions: [{
-      value: '1',
+      value: 2,
       label: 'AA',
     }, {
-      value: '2',
-      label: '免费',
-    }, {
-      value: '3',
-      label: '我买单',
-    }, {
-      value: '4',
+      value: 3,
       label: '设置费用',
     }],
-  }
+    cover: {
+      width: 150,
+      height: 150,
+    },
+  };
 
   constructor(props) {
     super(props);
     this.state = {
-      dialogImageUrl: '',
-      dialogVisible: false,
+      // scale: 1.0,
+      // dialogVisible: false,
+      // isClip: false,
+      name: true,
+      typeOptions: [],
+      rules: {
+        theme: [
+          { required: true, message: '请输入活动主题', trigger: 'blur' },
+          {
+            validator: (rule, value, callback) => {
+              if (value.length > 25) {
+                callback(new Error('活动主题不超过25个字'));
+              } else {
+                callback();
+              }
+            },
+          },
+        ],
+        address: [
+          { required: true, message: '请输入活动地址', trigger: 'blur' },
+        ],
+        dateStart: [
+          { type: 'date', required: true, message: '请选择开始日期', trigger: 'change' },
+        ],
+        timeStart: [
+          { type: 'date', required: true, message: '请选择开始时间', trigger: 'change' },
+        ],
+        dateEnd: [
+          { type: 'date', required: true, message: '请选择结束日期', trigger: 'change' },
+        ],
+        timeEnd: [
+          { type: 'date', required: true, message: '请选择结束时间', trigger: 'change' },
+        ],
+        type: [
+          { type: 'number', required: true, message: '请选择活动类型', trigger: 'blur' },
+        ],
+        money: [
+          { required: false, trigger: 'blur' },
+          {
+            validator: (rule, value, callback) => {
+              if (value === '') {
+                callback(new Error('请设置活动费用'));
+              } else {
+                callback();
+              }
+            },
+          },
+        ],
+        phone: [
+          { required: false, trigger: 'blur' },
+          {
+            validator: (rule, value, callback) => {
+              const regTel = /(^1[34578]{1}[0-9]{9}$)/;
+              const regTel2 = /^(([0+]\d{2,3}-)?(0\d{2,3})-)(\d{7,8})(-(\d{3,}))?$/;
+              if (regTel.test(value) || regTel2.test(value) || value === '') {
+                callback();
+              } else {
+                callback(new Error('电话不正确'));
+              }
+            },
+          },
+        ],
+      },
     };
   }
 
+  componentWillMount() {
+    GET(`http://app.${url}/v1/party/tag/list`).then((res) => {
+      if (res.code === 200) {
+        this.setState({
+          typeOptions: res.list,
+        });
+      }
+    });
+  }
+
+  // componentDidMount() {
+  //   this.dx = 0;
+  //   this.dy = 0;
+  //   this.preview.onmousedown = (e) => {
+  //     e.preventDefault();
+  //     this.lastx = this.mousePos(e).x - this.dx;
+  //     this.lasty = this.mousePos(e).y - this.dy;
+  //     if (this.mousePos(e).x >= this.px && this.mousePos(e).y >= this.py && this.mousePos(e).x <= this.imgWidth + this.px && this.mousePos(e).y <= this.imgHeight + this.py) {
+  //       this.isMouseDown = true;
+  //       this.preview.style.cursor = 'all-scroll';
+  //     }
+  //   };
+  //   this.preview.onmouseup = (e) => {
+  //     e.preventDefault();
+  //     this.isMouseDown = false;
+  //     this.preview.style.cursor = 'auto';
+  //   };
+  //   this.preview.onmouseout = (e) => {
+  //     e.preventDefault();
+  //     this.isMouseDown = false;
+  //     this.preview.style.cursor = 'auto';
+  //   };
+  //   this.preview.onmousemove = (e) => {
+  //     e.preventDefault();
+  //     if (this.isMouseDown) {
+  //       this.dx = this.mousePos(e).x - this.lastx;
+  //       this.dy = this.mousePos(e).y - this.lasty;
+  //       this.drawImageByScale(this.state.scale, this.dx, this.dy);
+  //     }
+  //   };
+  // }
+
+  onChangeMoney = (val) => {
+    const value = val.replace(/\D/, '');
+    this.onChange('money', value);
+  };
   onChange = (key, value) => {
     const obj = { [key]: value };
-    // if (key === 'money' && value === '4'){
-    //
-    // }
     this.props.dispatch(setFormValue(obj));
   };
-
-  handleRemove = (file, fileList) => {
-    console.log(file, fileList);
+  beforeUpload = (file) => {
+    // this.setState({
+    //   dialogVisible: true,
+    // });
+    // const oFReader = new FileReader();
+    // oFReader.readAsDataURL(file);
+    // oFReader.onload = (oFREvent) => {
+    //   this.paintImage(oFREvent.target.result);
+    // };
+    const isLt4M = file.size / 1024 / 1024 < 4;
+    return isLt4M;
   };
 
-  handlePictureCardPreview = (file) => {
-    this.setState({
-      dialogImageUrl: file.url,
-      dialogVisible: true,
+  // mousePos = (e) => {
+  //   const pos = this.box.getBoundingClientRect();
+  //   return {
+  //     x: e.clientX - pos.left,
+  //     y: e.clientY - pos.top,
+  //   };
+  // };
+  // resetCanvase = () => {
+  //   this.setState({
+  //     scale: 1.0,
+  //     isClip: false,
+  //   }, () => {
+  //     this.dx = 0;
+  //     this.dy = 0;
+  //     if (this.state.isClip) {
+  //       this.initClip();
+  //       this.coverPostion();
+  //       this.drawCover();
+  //     }
+  //     this.drawImageByScale(this.state.scale, 0, 0);
+  //   });
+  // };
+  // changeRange = (e) => {
+  //   this.setState({
+  //     scale: e.target.value,
+  //   }, () => {
+  //     this.drawImageByScale(this.state.scale, this.dx, this.dy);
+  //   });
+  // };
+  // drawImageByScale = (scale, disx, disy) => {
+  //   this.imgWidth = this.W * scale;
+  //   this.imgHeight = this.H * scale;
+  //   this.px = (this.preview.width - this.imgWidth) / 2 + disx;
+  //   this.py = (this.preview.height - this.imgHeight) / 2 + disy;
+  //   this.context.clearRect(0, 0, this.preview.width, this.preview.height);
+  //   this.context.drawImage(this.img, this.px, this.py, this.imgWidth, this.imgHeight);
+  //   this.imgUrl = this.preview.toDataURL();
+  //   this.state.isClip && this.editImg();
+  // };
+  // paintImage = (url) => {
+  //   this.preview.width = this.box.offsetWidth;
+  //   this.preview.height = this.box.offsetHeight;
+  //   this.context = this.preview.getContext('2d');
+  //   this.img = new Image();
+  //   this.img.src = url;
+  //   this.img.onload = () => {
+  //     if (this.img.width < this.box.offsetWidth && this.img.height < this.box.offsetHeight) {
+  //       this.imgWidth = this.img.width;
+  //       this.imgHeight = this.img.height;
+  //     } else {
+  //       const pWidth = this.img.width / (this.img.height / this.preview.offsetHeight);
+  //       const pHeight = this.img.height / (this.img.width / this.preview.offsetWidth);
+  //       this.imgWidth = this.img.width > this.img.height ? this.preview.offsetWidth : pWidth;
+  //       this.imgHeight = this.img.height > this.img.width ? this.preview.offsetHeight : pHeight;
+  //     }
+  //     this.W = this.imgWidth;
+  //     this.H = this.imgHeight;
+  //     // 图片的坐标
+  //     this.px = (this.preview.width - this.imgWidth) / 2;
+  //     this.py = (this.preview.height - this.imgHeight) / 2;
+  //     this.context.drawImage(this.img, this.px, this.py, this.imgWidth, this.imgHeight);
+  //     this.imgUrl = this.preview.toDataURL();
+  //   };
+  // };
+  // initClip = () => {
+  //   this.clip.width = this.box.offsetWidth;
+  //   this.clip.height = this.box.offsetHeight;
+  //   this.cx = (this.clip.width - this.props.cover.width) / 2;
+  //   this.cy = (this.clip.height - this.props.cover.height) / 2;
+  // };
+  // drawCover = () => {
+  //   this.cover = this.clip.getContext('2d');
+  //   this.cover.clearRect(0, 0, this.clip.width, this.clip.height);
+  //   this.cover.beginPath();
+  //   this.cover.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  //   this.cover.fillRect(0, 0, this.clip.width, this.clip.height);
+  //   this.cover.beginPath();
+  //   this.cover.lineWidth = 1;
+  //   this.cover.strokeStyle = '#000';
+  //   this.cover.fillStyle = 'rgba(255,255,255,0.5)';
+  //   this.cover.strokeRect(this.cx, this.cy, this.props.cover.width, this.props.cover.height);
+  //   this.cover.fillRect(this.cx, this.cy, this.props.cover.width, this.props.cover.height);
+  //   this.editImg();
+  // };
+  // clipImg = () => {
+  //   this.setState({
+  //     isClip: !this.state.isClip,
+  //   }, () => {
+  //     if (this.state.isClip) {
+  //       this.initClip();
+  //       this.coverPostion();
+  //       this.drawCover();
+  //       this.clip.onmousedown = (e) => {
+  //         e.preventDefault();
+  //         this.lx = this.mousePos(e).x - this.cx;
+  //         this.ly = this.mousePos(e).y - this.cy;
+  //         if (this.mousePos(e).x >= this.cx && this.mousePos(e).y >= this.cy && this.mousePos(e).x <= this.props.cover.width + this.cx && this.mousePos(e).y <= this.props.cover.height + this.cy) {
+  //           this.isMouseDown = true;
+  //           this.clip.style.cursor = 'all-scroll';
+  //         }
+  //       };
+  //       this.clip.onmouseup = (e) => {
+  //         e.preventDefault();
+  //         this.isMouseDown = false;
+  //         this.clip.style.cursor = 'auto';
+  //       };
+  //       this.clip.onmouseout = (e) => {
+  //         e.preventDefault();
+  //         this.isMouseDown = false;
+  //         this.clip.style.cursor = 'auto';
+  //       };
+  //       this.clip.onmousemove = (e) => {
+  //         e.preventDefault();
+  //         if (this.isMouseDown) {
+  //           this.cx = this.mousePos(e).x - this.lx;
+  //           this.cy = this.mousePos(e).y - this.ly;
+  //           this.coverPostion();
+  //           this.drawCover();
+  //         }
+  //       };
+  //     } else {
+  //       this.editCxt.clearRect(0, 0, this.props.cover.width, this.props.cover.height);
+  //     }
+  //   });
+  // };
+  // coverPostion = () => {
+  //   if (this.cx <= 0) {
+  //     this.cx = 0;
+  //   }
+  //   if (this.cx >= this.clip.width - this.props.cover.width) {
+  //     this.cx = this.clip.width - this.props.cover.width;
+  //   }
+  //   if (this.cy <= 0) {
+  //     this.cy = 0;
+  //   }
+  //   if (this.cy >= this.clip.height - this.props.cover.height) {
+  //     this.cy = this.clip.height - this.props.cover.height;
+  //   }
+  //   if (this.cx <= this.px) {
+  //     this.cx = this.px;
+  //   }
+  //   if (this.cy <= this.py) {
+  //     this.cy = this.py;
+  //   }
+  //   if (this.cx >= this.px + this.imgWidth - this.props.cover.width) {
+  //     this.cx = this.px + this.imgWidth - this.props.cover.width;
+  //   }
+  //   if (this.cy >= this.py + this.imgHeight - this.props.cover.height) {
+  //     this.cy = this.py + this.imgHeight - this.props.cover.height;
+  //   }
+  // };
+  // editImg = () => {
+  //   this.editCxt = this.edit.getContext('2d');
+  //   const img = new Image();
+  //   img.src = this.imgUrl;
+  //   img.onload = () => {
+  //     this.editCxt.drawImage(img, this.cx, this.cy, this.props.cover.width, this.props.cover.height, 0, 0, this.props.cover.width, this.props.cover.height);
+  //     this.clipImgUrl = this.edit.toDataURL();
+  //   };
+  // };
+  // cancelClip = () => {
+  //   this.context.clearRect(0, 0, this.preview.width, this.preview.height);
+  //   try {this.cover.clearRect(0, 0, this.clip.width, this.clip.height)}catch (e){}
+  //   this.editCxt.clearRect(0, 0, this.props.cover.width, this.props.cover.height);
+  //   this.setState({
+  //     dialogVisible: false,
+  //   });
+  // };
+  // sureClip = () => {
+  //   this.setState({
+  //     dialogVisible: false,
+  //     isClip: false,
+  //   });
+  //   if (!this.addImg) {
+  //     this.addImg = new Image();
+  //   }
+  //   try { this.imgContent.removeChild(this.addImg); } catch (e) {}
+  //   this.addImg.src = this.clipImgUrl;
+  //   this.imgContent.appendChild(this.addImg);
+  // };
+  uploadSuccess = (res, file) => {
+    this.onChange('imageUrl', res.data);
+    console.log(file);
+  };
+  onSubmit = (e) => {
+    e.preventDefault(e);
+    this.form.validate((valid) => {
+      if (valid) {
+        const { appState } = this.props;
+        const endTime = `${dateFormat(appState.endDate, 'yyyy/MM/dd')} ${dateFormat(appState.endTime, 'HH:mm:ss')}`;
+        if (endTime) {
+          const partyTime = `${dateFormat(appState.dateStart, 'yyyy/MM/dd')} ${dateFormat(appState.timeStart, 'HH:mm:ss')}`;
+          const flag1 = new Date(endTime).getTime() - new Date(partyTime).getTime();
+          const flag2 = new Date(endTime).getTime() - Date.now();
+          if (flag1 > 0) {
+            Tips.show('报名截止时间必须早于活动开始时间');
+            return false;
+          }
+          if (flag2 < 0) {
+            Tips.show('报名截止时间必须晚于当前时间');
+            return false;
+          }
+        }
+        browserHistory.push('/description');
+      } else {
+        return false;
+      }
     });
-  };
-
-  back = () => {};
-  next = () => {};
-  preview = () => {
-    const { appState } = this.props;
-    const flag = appState.type && appState.date && appState.time && appState.money;
-    if (flag) {
-      this.props.showDetails();
-    } else {
-      Tips.show('类型，时间，费用为必填项');
-    }
   };
 
   render() {
     const { appState } = this.props;
     return (
-      <div styleName="gathering">
+      <div styleName="gathering" className="">
         <Header
-          title="发起聚会"
-          rightBtnTxt="发布"
-          leftBtnCallBack={this.back}
-          rightBtnCallBack={this.next}
-        >
-          <span styleName="preview" onTouchEnd={this.preview}>预览</span>
-        </Header>
-        <div styleName="content">
-          <form styleName="form">
-            <div styleName="form-item">
-              <div styleName="label">类型</div>
-              <div styleName="value arrowRight">
-                <Select
-                  value={appState.type} clearable placeholder="请选择主题"
-                  onChange={value => this.onChange('type', value)}
-                >
-                  {
-                    this.props.typeOptions.map(el => <Select.Option
-                      key={el.value} label={el.label}
-                      value={el.value}
-                    />)
-                  }
-                </Select>
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">主题</div>
-              <div styleName="value">
-                <Input
-                  type="text"
-                  placeholder="请输入主题,25字以内"
-                  value={appState.theme}
-                  onChange={value => this.onChange('theme', value)}
-                />
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">地点</div>
-              <div styleName="value">
-                <Input
-                  type="text"
-                  placeholder="请填写聚会地点"
-                  value={appState.address}
-                  onChange={value => this.onChange('address', value)}
-                />
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">时间</div>
-              <div styleName="value arrowRight">
+          title="发布聚会"
+        />
+        <Form labelWidth="120" rules={this.state.rules} model={appState} ref={(ref) => { this.form = ref; }}>
+          <Form.Item label="活动主题" prop="theme">
+            <Input
+              type="text"
+              placeholder="请输入活动主题"
+              value={appState.theme}
+              onChange={value => this.onChange('theme', value)}
+            />
+          </Form.Item>
+          <Form.Item label="活动封面">
+            <Layout.Col span="12">
+              <Upload
+                className="avatar-uploader"
+                action={`http://app.${url}/v1/file/upload?kind=7`}
+                showFileList={false}
+                beforeUpload={file => this.beforeUpload(file)}
+                onSuccess={(res, file) => this.uploadSuccess(res, file)}
+                name="uploadFile"
+                tip={<div className="el-upload__tip">温馨提示：建议尺寸，大小不超过4M</div>}
+              >{appState.imageUrl ? <img src={appState.imageUrl} className="avatar" /> :
+                <i className="el-icon-plus avatar-uploader-icon" />}
+              </Upload>
+            </Layout.Col>
+            <Layout.Col span="12">
+              <div styleName="img-content" ref={(ref) => { this.imgContent = ref; }} />
+            </Layout.Col>
+          </Form.Item>
+          <Form.Item label="活动地点" prop="address">
+            <Input
+              type="text"
+              placeholder="请填写聚会地点"
+              value={appState.address}
+              onChange={value => this.onChange('address', value)}
+            />
+          </Form.Item>
+          <Form.Item label="活动时间" required>
+            <Layout.Col span="5">
+              <Form.Item labelWidth="0" prop="dateStart">
                 <DatePicker
-                  value={appState.date}
-                  placeholder="选择日期"
+                  value={appState.dateStart}
+                  placeholder="开始日期"
                   onChange={(value) => {
-                    this.onChange('date', value);
+                    this.onChange('dateStart', value);
                   }}
                   disabledDate={time => time.getTime() < Date.now() - 8.64e7}
                 />
+              </Form.Item>
+            </Layout.Col>
+            <Layout.Col span="1">&nbsp;</Layout.Col>
+            <Layout.Col span="5">
+              <Form.Item labelWidth="0" prop="timeStart">
                 <TimePicker
-                  placeholder="选择时间"
-                  value={appState.time}
+                  placeholder="开始时间"
+                  value={appState.timeStart}
                   onChange={(value) => {
-                    this.onChange('time', value);
+                    this.onChange('timeStart', value);
                   }}
                 />
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">费用</div>
-              <div styleName="value arrowRight">
-                <Select
-                  value={appState.money} clearable placeholder="请设置聚会费用"
-                  onChange={value => this.onChange('money', value)}
-                >
-                  {
-                    this.props.moneyOptions.map(el => <Select.Option
-                      key={el.value} label={el.label}
-                      value={el.value}
-                    />)
-                  }
-                </Select>
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">报名设置</div>
-              <div styleName="value arrowRight" onTouchEnd={this.props.showSetting}>
-                <Input
-                  type="text"
-                  placeholder="选填，未设置"
-                  disabled
-                  value={appState.registrationSettings}
+              </Form.Item>
+            </Layout.Col>
+            <Layout.Col span="2" style={{ textAlign: 'center' }}>——</Layout.Col>
+            <Layout.Col span="5">
+              <Form.Item labelWidth="0">
+                <DatePicker
+                  value={appState.dateEnd}
+                  placeholder="结束日期"
+                  isDisabled={!appState.dateStart}
+                  onChange={(value) => {
+                    this.onChange('dateEnd', value);
+                  }}
+                  disabledDate={time => appState.dateStart ? (time.getTime() < appState.dateStart.getTime()) : (time.getTime() > 0)}
                 />
-              </div>
-            </div>
-            <div styleName="form-item">
-              <div styleName="label">聚会描述</div>
-              <div
-                styleName="value arrowRight" className="ellipsis"
-                onTouchEnd={this.props.showDescription}
-              >
-                <Input
-                  type="text"
-                  disabled
-                  placeholder="选填，未设置"
-                  value={appState.partyDescription}
+              </Form.Item>
+            </Layout.Col>
+            <Layout.Col span="1">&nbsp;</Layout.Col>
+            <Layout.Col span="5">
+              <Form.Item labelWidth="0">
+                <TimePicker
+                  placeholder="结束时间"
+                  value={appState.timeEnd}
+                  isDisabled={!appState.dateStart}
+                  onChange={(value) => {
+                    this.onChange('timeEnd', value);
+                  }}
                 />
-              </div>
+              </Form.Item>
+            </Layout.Col>
+          </Form.Item>
+          <Form.Item label="活动类型" prop="type">
+            <Select
+              value={appState.type} clearable placeholder="请选择活动类型"
+              onChange={value => this.onChange('type', value)}
+            >
+              {
+                this.state.typeOptions.map(el => <Select.Option
+                  key={el.tagId} label={el.name}
+                  value={el.tagId}
+                />)
+              }
+            </Select>
+          </Form.Item>
+          <Form.Item label="活动费用">
+            <Radio.Group
+              value={appState.payType}
+              onChange={(value) => {
+                this.onChange('payType', value);
+              }}
+            >
+              <Radio.Button value="免费" />
+              <Radio.Button value="AA" />
+              <Radio.Button value="我买单" />
+              <Radio.Button value="设置费用" />
+            </Radio.Group>
+            {
+              appState.payType === '设置费用' ?
+                <Form.Item labelWidth="0" prop="money" style={{ display: 'inline-block', marginLeft: '10px' }}>
+                  <Input
+                    type="text"
+                    placeholder="请输入费用"
+                    value={appState.money}
+                    style={{ width: '100px', }}
+                    onChange={value => this.onChangeMoney(value)}
+                  /></Form.Item> : null}
+          </Form.Item>
+          <Form.Item label="主办方联系方式" prop="phone">
+            <Input
+              type="text"
+              placeholder="请输入咨询电话"
+              value={appState.phone}
+              onChange={(value) => { this.onChange('phone', value); }}
+            />
+          </Form.Item>
+          <Form.Item label="活动人数限制">
+            <Input
+              type="number"
+              placeholder="默认无限制"
+              min={0}
+              value={appState.registerNumber}
+              onChange={(value) => {
+                if (value < 0) {
+                  value = 0;
+                }
+                this.onChange('registerNumber', value);
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="报名截止时间">
+            <span style={{ marginRight: '10px' }}>活动结束前均可报名</span>
+            <Switch
+              value={appState.isSetRegisterEnd}
+              onColor="#62C0C1"
+              onChange={(value) => {
+                this.onChange('isSetRegisterEnd', value);
+              }}
+            />
+            {
+              appState.isSetRegisterEnd ? null :
+                <div>
+                  <Layout.Col span="5">
+                    <DatePicker
+                      value={appState.endDate}
+                      placeholder="截止日期"
+                      onChange={(value) => {
+                        this.onChange('endDate', value);
+                      }}
+                      disabledDate={time => appState.dateStart ? ((time.getTime() > appState.dateStart.getTime()) || (time.getTime() < Date.now() - 8.64e7)) : (time.getTime() > 0)}
+                    />
+                  </Layout.Col>
+                  <Layout.Col span="1">&nbsp;</Layout.Col>
+                  <Layout.Col span="5">
+                    <TimePicker
+                      placeholder="截止时间"
+                      value={appState.endTime}
+                      onChange={(value) => {
+                        this.onChange('endTime', value);
+                      }}
+                    />
+                  </Layout.Col>
+                </div>
+            }
+          </Form.Item>
+          <div styleName="cancel">报名截止之前用户可以随时取消报名</div>
+          <Form.Item label="设置用户报名时的必填项" className="setting-switch">
+            <Switch
+              value={appState.registerRequired}
+              onColor="#62C0C1"
+              onChange={(value) => {
+                this.onChange('registerRequired', value);
+                if (!value) {
+                  this.onChange('phoneRequired', false);
+                  this.onChange('idCardRequired', false);
+                }
+              }}
+            />
+          </Form.Item>
+          {appState.registerRequired ?
+            <div className="register-required">
+              <Form.Item label="姓名">
+                <Switch
+                  value={this.state.name}
+                  onColor="#62C0C1"
+                  onChange={() => {
+                    this.setState({
+                      name: true,
+                    });
+                  }}
+                />
+              </Form.Item>
+              <Form.Item label="手机号">
+                <Switch
+                  value={appState.phoneRequired}
+                  onColor="#62C0C1"
+                  onChange={(value) => {
+                    this.onChange('phoneRequired', value);
+                  }}
+                />
+              </Form.Item>
+              <Form.Item label="身份证">
+                <Switch
+                  value={appState.idCardRequired}
+                  onColor="#62C0C1"
+                  onChange={(value) => {
+                    this.onChange('idCardRequired', value);
+                  }}
+                />
+              </Form.Item>
+              <div styleName="tips">以上三项，必须设置费用后才能生效</div>
+            </div> : null}
+          <Form.Item>
+            <div styleName="primary">
+              <Button type="primary" onClick={this.onSubmit}>下一步</Button>
             </div>
-            <div styleName="form-item">
-              <div styleName="label">聚会口号</div>
-              <div styleName="value arrowRight">
-                <Select
-                  value={appState.partySlogan} clearable placeholder="选填，未设置"
-                  onChange={value => this.onChange('partySlogan', value)}
-                >
-                  {
-                    this.props.sloganOptions.map(el => <Select.Option
-                      key={el.value} label={el.label}
-                      value={el.value}
-                    />)
-                  }
-                </Select>
-              </div>
-            </div>
-          </form>
-          <Upload
-            action="//jsonplaceholder.typicode.com/posts/"
-            listType="picture-card"
-            onPreview={file => this.handlePictureCardPreview(file)}
-            onRemove={(file, fileList) => this.handleRemove(file, fileList)}
-          >
-            <i className="el-icon-plus" />
-          </Upload>
-        </div>
+          </Form.Item>
+        </Form>
+        {/*<Dialog*/}
+          {/*title="提示"*/}
+          {/*modal={false}*/}
+          {/*visible={this.state.dialogVisible}*/}
+          {/*onCancel={() => this.setState({ dialogVisible: false })}*/}
+          {/*lockScroll={false}*/}
+          {/*closeOnClickModal={false}*/}
+        {/*>*/}
+          {/*<Dialog.Body>*/}
+            {/*<div styleName="preview-box" ref={(ref) => { this.box = ref; }}>*/}
+              {/*<canvas styleName="preview" ref={(ref) => { this.preview = ref; }} />*/}
+              {/*{*/}
+                {/*this.state.isClip ?*/}
+                  {/*<span>*/}
+                    {/*<canvas styleName="clip" ref={(ref) => { this.clip = ref; }} />*/}
+                  {/*</span> : null*/}
+              {/*}*/}
+            {/*</div>*/}
+            {/*<canvas styleName="edit" ref={(ref) => { this.edit = ref; }} width={150} height={150} />*/}
+            {/*<div styleName="range-container">*/}
+              {/*<Button onClick={this.resetCanvase} style={{ marginRight: '10px' }}>还原</Button>*/}
+              {/*<span>1.0</span>*/}
+              {/*<input*/}
+                {/*type="range" min="1.0" max="3.0" step="0.1" value={this.state.scale} onChange={this.changeRange}*/}
+                {/*style={{ margin: '0 5px' }}*/}
+              {/*/>*/}
+              {/*<span>3.0</span>*/}
+              {/*<Button onClick={this.clipImg} style={{ marginLeft: '10px' }}>{*/}
+                {/*this.state.isClip ? '取消' : '裁剪'*/}
+              {/*}</Button>*/}
+            {/*</div>*/}
+          {/*</Dialog.Body>*/}
+          {/*<Dialog.Footer className="dialog-footer">*/}
+            {/*<Button onClick={this.cancelClip}>取消</Button>*/}
+            {/*<Button type="primary" onClick={this.sureClip}>确定</Button>*/}
+          {/*</Dialog.Footer>*/}
+        {/*</Dialog>*/}
       </div>
     );
   }
@@ -249,4 +681,5 @@ function mapStateToProps(state) {
     appState: state.appState,
   };
 }
+
 export default connect(mapStateToProps)(Gathering);
