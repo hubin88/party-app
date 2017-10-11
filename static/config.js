@@ -5,11 +5,11 @@
 /*
 * 开发环境地址
 * */
-var url='api.hboffice.cn';
+var url='http://app.api.hboffice.cn';
 
 
 /*
- *正式环地址
+ *正式环境地址
 * */
 
-// var url='api.hboffice.cn';
+// var url='https://app.api.louka.net.cn';

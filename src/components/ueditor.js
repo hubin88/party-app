@@ -2,8 +2,13 @@
  * Created by hubin on 2017/8/2.
  */
 import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
+import { setFormValue } from '../model/action';
 
-export default class Ueditor extends Component {
+class Ueditor extends Component {
+  constructor(props) {
+    super(props);
+  }
   componentDidMount() {
     window.editor = UE.getEditor(this.props.id, {
       UEDITOR_HOME_URL: '/static/ueditor/',
@@ -45,15 +50,29 @@ export default class Ueditor extends Component {
       readonly: this.props.disabled,
     });
     const me = this;
-    editor.ready((ueditor) => {
+    editor.addListener('ready',()=>{
       const value = me.props.value ? me.props.value : '<p></p>';
       editor.setContent(value);
     });
+    editor.addListener('contentchange',()=>{
+      this.onChange('content',editor.getContent());
+    })
   }
-
+  onChange = (key, value) => {
+    const obj = { [key]: value };
+    this.props.dispatch(setFormValue(obj));
+  };
   render() {
     return (
       <div id={this.props.id} name="content" />
     );
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    appState: state.appState,
+  };
+}
+
+export default connect(mapStateToProps)(Ueditor);

@@ -1,0 +1,20 @@
+/* stylelint-disable */
+.partylist{
+  box-sizing: border-box;
+}
+.page{
+  padding: 0 2.5%;
+  height:.3rem;
+  position: relative;
+  &>div{
+    height: .3rem;
+    display: inline-block;
+    position: absolute;
+    right: 2.5%;
+  }
+  clear: right;
+}
+.btn{
+  font-size: .16rem;
+  text-align: center;
+}

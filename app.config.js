@@ -3,7 +3,7 @@ const ip = require('ip').address();
 const config = {
   server: {
     host: ip,
-    port: 8080,
+    port:2022,
   },
   copyFile: [
     // { from: './single_part', to: './' },

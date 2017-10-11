@@ -23,16 +23,25 @@
 .title {
   display: inline-block;
   text-align: center;
-  font-size: .16rem;
+  font-size: .2rem;
 }
 
 .left-btn-icon {
   position: absolute;
+  left: 0;
+  height: $headerHeight;
+  line-height: $headerHeight!important;
+  width: .3rem;
+  font-size: .16rem;
+}
+.left-btn{
+  position: absolute;
   left: .1rem;
+  padding-left: .3rem;
   height: $headerHeight;
   line-height: $headerHeight;
-  min-width: .3rem;
   font-size: .16rem;
+  cursor: pointer;
 }
 
 .right-btn {

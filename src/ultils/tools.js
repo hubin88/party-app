@@ -146,8 +146,15 @@ export class Dates {
   static getThisWeekStartSundayArray(dateType, weekType) {
     return Dates.getThisWeek(0, dateType, weekType);
   }
-}
 
+  static getThisMonthAfterSomeMonth(some) {
+    const thisMonth = new Date().getMonth();
+    const afterMonth = thisMonth + some;
+    const afterTime=new Date();
+    afterTime.setMonth(afterMonth);
+    return afterTime;
+  }
+}
 //
 // // 获取系统参数
 // export function getSystem() {

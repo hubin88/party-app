@@ -21,8 +21,8 @@ import './gathering.scss';
 import { browserHistory } from 'react-router';
 import { setFormValue } from '../../model/action';
 import Header from '../../components/header/header';
-import { GET } from '../../ultils/server';
-import { dateFormat } from '../../ultils/tools';
+import { GET, DELETE } from '../../ultils/server';
+import { dateFormat, Dates } from '../../ultils/tools';
 import Tips from '../../components/tip/tips';
 
 class Gathering extends Component {
@@ -30,6 +30,7 @@ class Gathering extends Component {
     showDetails: PropTypes.func,
     showSetting: PropTypes.func,
     showDescription: PropTypes.func,
+    payOptions: PropTypes.array,
   };
   static defaultProps = {
     payOptions: [{
@@ -45,18 +46,19 @@ class Gathering extends Component {
       value: 3,
       label: '设置费用',
     }],
-    cover: {
-      width: 150,
-      height: 150,
-    },
+    // cover: {
+    //   width: 150,
+    //   height: 150,
+    // },
   };
 
   constructor(props) {
     super(props);
     this.state = {
       // scale: 1.0,
-      // dialogVisible: false,
+      dialogVisible: false,
       // isClip: false,
+      dialogImageUrl: '',
       name: true,
       typeOptions: [],
       rules: {
@@ -118,71 +120,82 @@ class Gathering extends Component {
         ],
       },
     };
+    this.loginData = JSON.parse(window.sessionStorage.getItem('loginData'));
   }
 
   componentWillMount() {
-    GET(`http://app.${url}/v1/party/tag/list`).then((res) => {
+    const { appState } = this.props;
+    GET(`${url}/v1/party/tag/list`, this.loginData.token).then((res) => {
       if (res.code === 200) {
         this.setState({
           typeOptions: res.list,
+        }, () => {
+          const tag = this.state.typeOptions.filter(item => item.name === appState.type)[0];
+          tag && this.onChange('type', tag.tagId);
         });
       }
     });
+    const pay = this.props.payOptions.filter(item => item.value === appState.payType)[0];
+    pay && this.onChange('payType', pay.label);
   }
 
-  // componentDidMount() {
-  //   this.dx = 0;
-  //   this.dy = 0;
-  //   this.preview.onmousedown = (e) => {
-  //     e.preventDefault();
-  //     this.lastx = this.mousePos(e).x - this.dx;
-  //     this.lasty = this.mousePos(e).y - this.dy;
-  //     if (this.mousePos(e).x >= this.px && this.mousePos(e).y >= this.py && this.mousePos(e).x <= this.imgWidth + this.px && this.mousePos(e).y <= this.imgHeight + this.py) {
-  //       this.isMouseDown = true;
-  //       this.preview.style.cursor = 'all-scroll';
-  //     }
-  //   };
-  //   this.preview.onmouseup = (e) => {
-  //     e.preventDefault();
-  //     this.isMouseDown = false;
-  //     this.preview.style.cursor = 'auto';
-  //   };
-  //   this.preview.onmouseout = (e) => {
-  //     e.preventDefault();
-  //     this.isMouseDown = false;
-  //     this.preview.style.cursor = 'auto';
-  //   };
-  //   this.preview.onmousemove = (e) => {
-  //     e.preventDefault();
-  //     if (this.isMouseDown) {
-  //       this.dx = this.mousePos(e).x - this.lastx;
-  //       this.dy = this.mousePos(e).y - this.lasty;
-  //       this.drawImageByScale(this.state.scale, this.dx, this.dy);
-  //     }
-  //   };
-  // }
+  componentDidMount() {
+    const isUploadImg = document.querySelector('.el-upload-list--picture-card');
+    if (isUploadImg) {
+      document.querySelector('.el-upload--picture-card').style.display = "none";
+    }
+    // this.dx = 0;
+    // this.dy = 0;
+    // this.preview.onmousedown = (e) => {
+    //   e.preventDefault();
+    //   this.lastx = this.mousePos(e).x - this.dx;
+    //   this.lasty = this.mousePos(e).y - this.dy;
+    //   if (this.mousePos(e).x >= this.px && this.mousePos(e).y >= this.py && this.mousePos(e).x <= this.imgWidth + this.px && this.mousePos(e).y <= this.imgHeight + this.py) {
+    //     this.isMouseDown = true;
+    //     this.preview.style.cursor = 'all-scroll';
+    //   }
+    // };
+    // this.preview.onmouseup = (e) => {
+    //   e.preventDefault();
+    //   this.isMouseDown = false;
+    //   this.preview.style.cursor = 'auto';
+    // };
+    // this.preview.onmouseout = (e) => {
+    //   e.preventDefault();
+    //   this.isMouseDown = false;
+    //   this.preview.style.cursor = 'auto';
+    // };
+    // this.preview.onmousemove = (e) => {
+    //   e.preventDefault();
+    //   if (this.isMouseDown) {
+    //     this.dx = this.mousePos(e).x - this.lastx;
+    //     this.dy = this.mousePos(e).y - this.lasty;
+    //     this.drawImageByScale(this.state.scale, this.dx, this.dy);
+    //   }
+    // };
+  }
 
   onChangeMoney = (val) => {
-    const value = val.replace(/\D/, '');
+    const value = val.replace(/[^0-9.]/, '');
     this.onChange('money', value);
   };
   onChange = (key, value) => {
     const obj = { [key]: value };
     this.props.dispatch(setFormValue(obj));
   };
-  beforeUpload = (file) => {
-    // this.setState({
-    //   dialogVisible: true,
-    // });
-    // const oFReader = new FileReader();
-    // oFReader.readAsDataURL(file);
-    // oFReader.onload = (oFREvent) => {
-    //   this.paintImage(oFREvent.target.result);
-    // };
-    const isLt4M = file.size / 1024 / 1024 < 4;
-    return isLt4M;
-  };
-
+  // beforeUpload = (file) => {
+  //   this.setState({
+  //     dialogVisible: true,
+  //   });
+  //   const oFReader = new FileReader();
+  //   oFReader.readAsDataURL(file);
+  //   oFReader.onload = (oFREvent) => {
+  //     this.paintImage(oFREvent.target.result);
+  //   };
+  //   const isLt4M = file.size / 1024 / 1024 < 4;
+  //   return isLt4M;
+  // };
+  //
   // mousePos = (e) => {
   //   const pos = this.box.getBoundingClientRect();
   //   return {
@@ -226,6 +239,7 @@ class Gathering extends Component {
   //   this.preview.width = this.box.offsetWidth;
   //   this.preview.height = this.box.offsetHeight;
   //   this.context = this.preview.getContext('2d');
+  //
   //   this.img = new Image();
   //   this.img.src = url;
   //   this.img.onload = () => {
@@ -345,7 +359,7 @@ class Gathering extends Component {
   // };
   // cancelClip = () => {
   //   this.context.clearRect(0, 0, this.preview.width, this.preview.height);
-  //   try {this.cover.clearRect(0, 0, this.clip.width, this.clip.height)}catch (e){}
+  //   try {this.cover.clearRect(0, 0, this.clip.width, this.clip.height)} catch (e) {}
   //   this.editCxt.clearRect(0, 0, this.props.cover.width, this.props.cover.height);
   //   this.setState({
   //     dialogVisible: false,
@@ -363,17 +377,27 @@ class Gathering extends Component {
   //   this.addImg.src = this.clipImgUrl;
   //   this.imgContent.appendChild(this.addImg);
   // };
-  uploadSuccess = (res, file) => {
+  uploadSuccess = (res, file, fileList) => {
     this.onChange('imageUrl', res.data);
+    this.onChange('imageUrlList', fileList);
+    document.querySelector('.el-upload--picture-card').style.display = "none";
+  };
+  removeImg = (file) => {
     console.log(file);
+    const reg = /^((http:\/\/)|(https:\/\/))?([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(\/)/;
+    const fileUrl = file.response ? file.response.data : file.url;
+    const URL = fileUrl.replace(reg, '');
+    DELETE(`${url}/v1/file/delete?url=${URL}`, this.loginData.token);
+    document.querySelector('.el-upload--picture-card').style.display = "inline-block";
   };
   onSubmit = (e) => {
     e.preventDefault(e);
+    const { appState } = this.props;
     this.form.validate((valid) => {
       if (valid) {
         const { appState } = this.props;
         const endTime = `${dateFormat(appState.endDate, 'yyyy/MM/dd')} ${dateFormat(appState.endTime, 'HH:mm:ss')}`;
-        if (endTime) {
+        if (!appState.isSetRegisterEnd && endTime) {
           const partyTime = `${dateFormat(appState.dateStart, 'yyyy/MM/dd')} ${dateFormat(appState.timeStart, 'HH:mm:ss')}`;
           const flag1 = new Date(endTime).getTime() - new Date(partyTime).getTime();
           const flag2 = new Date(endTime).getTime() - Date.now();
@@ -391,6 +415,12 @@ class Gathering extends Component {
         return false;
       }
     });
+  };
+  handlePictureCardPreview = (file) => {
+    this.setState({
+      dialogImageUrl: file.url,
+      dialogVisible: true,
+    })
   };
 
   render() {
@@ -410,22 +440,19 @@ class Gathering extends Component {
             />
           </Form.Item>
           <Form.Item label="活动封面">
-            <Layout.Col span="12">
-              <Upload
-                className="avatar-uploader"
-                action={`http://app.${url}/v1/file/upload?kind=7`}
-                showFileList={false}
-                beforeUpload={file => this.beforeUpload(file)}
-                onSuccess={(res, file) => this.uploadSuccess(res, file)}
-                name="uploadFile"
-                tip={<div className="el-upload__tip">温馨提示：建议尺寸，大小不超过4M</div>}
-              >{appState.imageUrl ? <img src={appState.imageUrl} className="avatar" /> :
-                <i className="el-icon-plus avatar-uploader-icon" />}
-              </Upload>
-            </Layout.Col>
-            <Layout.Col span="12">
-              <div styleName="img-content" ref={(ref) => { this.imgContent = ref; }} />
-            </Layout.Col>
+            <Upload
+              className=""
+              action={`${url}/v1/file/upload?kind=7`}
+              headers={{ Authorization: this.loginData.token }}
+              showFileList={true}
+              onPreview={file => this.handlePictureCardPreview(file)}
+              onSuccess={(res, file, fileList) => this.uploadSuccess(res, file, fileList)}
+              onRemove={(file) => this.removeImg(file)}
+              fileList={appState.imageUrlList}
+              name="uploadFile"
+              listType="picture-card"
+            ><i className="el-icon-plus avatar-uploader-icon" />
+            </Upload>
           </Form.Item>
           <Form.Item label="活动地点" prop="address">
             <Input
@@ -444,7 +471,7 @@ class Gathering extends Component {
                   onChange={(value) => {
                     this.onChange('dateStart', value);
                   }}
-                  disabledDate={time => time.getTime() < Date.now() - 8.64e7}
+                  disabledDate={time => time.getTime() < Date.now() - 8.64e7 || time.getTime() > Dates.getThisMonthAfterSomeMonth(3).getTime()}
                 />
               </Form.Item>
             </Layout.Col>
@@ -470,7 +497,7 @@ class Gathering extends Component {
                   onChange={(value) => {
                     this.onChange('dateEnd', value);
                   }}
-                  disabledDate={time => appState.dateStart ? (time.getTime() < appState.dateStart.getTime()) : (time.getTime() > 0)}
+                  disabledDate={time => appState.dateStart ? (time.getTime() < appState.dateStart.getTime() || time.getTime() > Dates.getThisMonthAfterSomeMonth(3).getTime()) : (time.getTime() > 0)}
                 />
               </Form.Item>
             </Layout.Col>
@@ -522,12 +549,13 @@ class Gathering extends Component {
                     value={appState.money}
                     style={{ width: '100px', }}
                     onChange={value => this.onChangeMoney(value)}
-                  /></Form.Item> : null}
+                  />
+                </Form.Item> : null}
           </Form.Item>
           <Form.Item label="主办方联系方式" prop="phone">
             <Input
               type="text"
-              placeholder="请输入咨询电话"
+              placeholder='请输入手机号码或座机(&quot;区号-电话号码-分机号&quot;)'
               value={appState.phone}
               onChange={(value) => { this.onChange('phone', value); }}
             />
@@ -634,42 +662,50 @@ class Gathering extends Component {
             </div>
           </Form.Item>
         </Form>
+        <Dialog
+          visible={this.state.dialogVisible}
+          size="tiny"
+          onCancel={() => this.setState({ dialogVisible: false })}
+        >
+          <img width="100%" src={this.state.dialogImageUrl} alt="" />
+        </Dialog>
         {/*<Dialog*/}
-          {/*title="提示"*/}
-          {/*modal={false}*/}
-          {/*visible={this.state.dialogVisible}*/}
-          {/*onCancel={() => this.setState({ dialogVisible: false })}*/}
-          {/*lockScroll={false}*/}
-          {/*closeOnClickModal={false}*/}
+        {/*title="提示"*/}
+        {/*modal={false}*/}
+        {/*visible={this.state.dialogVisible}*/}
+        {/*onCancel={() => this.setState({ dialogVisible: false })}*/}
+        {/*lockScroll={false}*/}
+        {/*closeOnClickModal={false}*/}
         {/*>*/}
-          {/*<Dialog.Body>*/}
-            {/*<div styleName="preview-box" ref={(ref) => { this.box = ref; }}>*/}
-              {/*<canvas styleName="preview" ref={(ref) => { this.preview = ref; }} />*/}
-              {/*{*/}
-                {/*this.state.isClip ?*/}
-                  {/*<span>*/}
-                    {/*<canvas styleName="clip" ref={(ref) => { this.clip = ref; }} />*/}
-                  {/*</span> : null*/}
-              {/*}*/}
-            {/*</div>*/}
-            {/*<canvas styleName="edit" ref={(ref) => { this.edit = ref; }} width={150} height={150} />*/}
-            {/*<div styleName="range-container">*/}
-              {/*<Button onClick={this.resetCanvase} style={{ marginRight: '10px' }}>还原</Button>*/}
-              {/*<span>1.0</span>*/}
-              {/*<input*/}
-                {/*type="range" min="1.0" max="3.0" step="0.1" value={this.state.scale} onChange={this.changeRange}*/}
-                {/*style={{ margin: '0 5px' }}*/}
-              {/*/>*/}
-              {/*<span>3.0</span>*/}
-              {/*<Button onClick={this.clipImg} style={{ marginLeft: '10px' }}>{*/}
-                {/*this.state.isClip ? '取消' : '裁剪'*/}
-              {/*}</Button>*/}
-            {/*</div>*/}
-          {/*</Dialog.Body>*/}
-          {/*<Dialog.Footer className="dialog-footer">*/}
-            {/*<Button onClick={this.cancelClip}>取消</Button>*/}
-            {/*<Button type="primary" onClick={this.sureClip}>确定</Button>*/}
-          {/*</Dialog.Footer>*/}
+        {/*<Dialog.Body>*/}
+        {/*<div styleName="preview-box" ref={(ref) => { this.box = ref; }}>*/}
+        {/*<canvas styleName="preview" ref={(ref) => { this.preview = ref; }} />*/}
+        {/*{*/}
+        {/*this.state.isClip ?*/}
+        {/*<span>*/}
+        {/*<canvas styleName="clip" ref={(ref) => { this.clip = ref; }} />*/}
+        {/*</span> : null*/}
+        {/*}*/}
+        {/*</div>*/}
+        {/*<canvas styleName="edit" ref={(ref) => { this.edit = ref; }} width={150} height={150} />*/}
+        {/*<div styleName="range-container">*/}
+        {/*<Button onClick={this.resetCanvase} style={{ marginRight: '10px' }}>还原</Button>*/}
+        {/*<span>1.0</span>*/}
+        {/*<input*/}
+        {/*type="range" min="1.0" max="3.0" step="0.1" value={this.state.scale}*/}
+        {/*onChange={(e) => this.changeRange(e)}*/}
+        {/*style={{ margin: '0 5px' }}*/}
+        {/*/>*/}
+        {/*<span>3.0</span>*/}
+        {/*<Button onClick={this.clipImg} style={{ marginLeft: '10px' }}>{*/}
+        {/*this.state.isClip ? '取消' : '裁剪'*/}
+        {/*}</Button>*/}
+        {/*</div>*/}
+        {/*</Dialog.Body>*/}
+        {/*<Dialog.Footer className="dialog-footer">*/}
+        {/*<Button onClick={this.cancelClip}>取消</Button>*/}
+        {/*<Button type="primary" onClick={this.sureClip}>确定</Button>*/}
+        {/*</Dialog.Footer>*/}
         {/*</Dialog>*/}
       </div>
     );

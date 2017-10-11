@@ -1,8 +1,13 @@
 .login {
-  width: 5rem;
-  margin: 1rem auto;
+  width: 3rem;
+  margin: 0 auto;
 }
-
+.title{
+  text-align: center;
+  font-size: .2rem;
+  font-weight: bold;
+  margin: .2rem 0;
+}
 .primary {
   button {
     display: inline-block;

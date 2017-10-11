@@ -10,6 +10,7 @@ export default class Header extends Component {
     title: PropTypes.any,
     hasTop: PropTypes.bool,
     rightBtnTxt: PropTypes.any,
+    leftBtnTxt: PropTypes.any,
     leftBtnCallBack: PropTypes.func,
     rightBtnCallBack: PropTypes.func,
     styles: PropTypes.object,
@@ -19,6 +20,7 @@ export default class Header extends Component {
     hasTop: false,
     hasLeftBtnIcon: false,
     rightBtnTxt: '',
+    leftBtnTxt:'',
     styles: {},
   };
 
@@ -32,7 +34,7 @@ export default class Header extends Component {
 
   render() {
     const {
-      title, hasTop, leftBtnCallBack, rightBtnCallBack, rightBtnTxt,
+      title, hasTop, leftBtnCallBack, rightBtnCallBack, rightBtnTxt,leftBtnTxt
     } = this.props;
     return (
       <div styleName="header" style={this.props.styles}>
@@ -42,11 +44,14 @@ export default class Header extends Component {
         <div styleName="title-box">
           {
             leftBtnCallBack ?
-              <i
-                styleName="left-btn-icon"
-                className="el-icon-arrow-left"
-                onClick={this.leftBtnClick}
-              /> : null
+              <span styleName="left-btn" onClick={this.leftBtnClick}>
+                <i
+                  styleName="left-btn-icon"
+                  className="el-icon-arrow-left"
+                />
+                {leftBtnTxt}
+              </span>
+              : null
           }
           <div styleName="title">{title}</div>
           {this.props.children}

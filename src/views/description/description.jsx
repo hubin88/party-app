@@ -10,14 +10,12 @@ import { setFormValue } from '../../model/action';
 import Header from '../../components/header/header';
 import './description.scss';
 import Ueditor from '../../components/ueditor';
-import { DELETE } from '../../ultils/server';
+import { DELETE, POST } from '../../ultils/server';
 import Tips from '../../components/tip/tips';
-import { POST } from '../../ultils/server';
 import { dateFormat } from '../../ultils/tools';
 
 class Description extends Component {
   static propTypes = {
-    hideDescription: PropTypes.func,
     payOptions: PropTypes.array,
   };
   static defaultProps = {
@@ -42,24 +40,19 @@ class Description extends Component {
     this.state = {
       remain: 0,
       value: '',
-      content: '',
-      fileList: [],
       showView: false,
+      isSubmit: false,
     };
+    this.loginData = JSON.parse(window.sessionStorage.getItem('loginData'));
   }
+
   onChange = (key, value) => {
     const obj = { [key]: value };
     this.props.dispatch(setFormValue(obj));
-    this.props.hideDescription();
   };
 
   back = () => {
-    this.props.hideDescription();
-  };
-  getContent = () => {
-    this.setState({
-      content: window.editor.getContent(),
-    });
+    browserHistory.push('/register');
   };
 
   insertHtml(url) {
@@ -68,22 +61,54 @@ class Description extends Component {
   }
 
   handleRemove(file) {
-    DELETE(`http://app.${url}/v1/file/delete?url=${file.response.data}`);
+    const reg = /^((http:\/\/)|(https:\/\/))?([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(\/)/;
+    const fileUrl = file.response.data.replace(reg, '');
+    DELETE(`${url}/v1/file/delete?url=${fileUrl}`, this.loginData.token);
   }
 
   handlePreview(file) {
     this.insertHtml(file.response.data);
   }
 
+  setFileList = (fileList) => {
+    this.onChange('fileList', fileList);
+  };
   preview = () => {
     this.setState({
       showView: true,
     });
   };
+  onChange = (key, value) => {
+    const obj = { [key]: value };
+    this.props.dispatch(setFormValue(obj));
+  };
+  resetValue = () => {
+    const arrEmpty = ['theme', 'imageUrl', 'address', 'type', 'money', 'partyDescription', 'phone', 'registerNumber', 'content', 'partyId'];
+    arrEmpty.forEach(item => {
+      this.onChange(item, '');
+    });
+    const arrNull = ['dateStart', 'timeStart', 'dateEnd', 'timeEnd', 'endDate', 'endTime'];
+    arrNull.forEach(item => {
+      this.onChange(item, null);
+    });
+    const arrFalse = ['registerRequired', 'phoneRequired', 'idCardRequired'];
+    arrFalse.forEach(item => {
+      this.onChange(item, false);
+    });
+    this.onChange('isSetRegisterEnd', true);
+    this.onChange('fileList', []);
+    this.onChange('imageUrlList', []);
+    this.onChange('payType', '免费');
+  };
   onSubmit = () => {
+    if (this.state.isSubmit) return false;
+    this.setState({
+      isSubmit: true,
+    });
     const { appState } = this.props;
-    const loginData = window.sessionStorage.getItem('loginData');
-    POST(`http://app.${url}/v1/party`, {
+    const loginData = JSON.parse(window.sessionStorage.getItem('loginData'));
+    POST(`${url}/v1/party`, {
+      partyingId: appState.partyId,
       address: appState.address,
       costWay: this.props.payOptions.filter(item => item.label === appState.payType)[0].value,
       dentityState: appState.idCardRequired ? '1' : '0',
@@ -93,7 +118,7 @@ class Description extends Component {
       filed: appState.registerRequired ? '1' : '0',
       groupId: appState.loginData.groupId || loginData.groupId,
       hotline: appState.phone.toString(),
-      images: ['string'],
+      images: [appState.imageUrl],
       partyTime: `${dateFormat(appState.dateStart)} ${dateFormat(appState.timeStart, 'HH:mm:ss')}`,
       partyTopic: appState.theme,
       phoneNumState: appState.phoneRequired ? '1' : '0',
@@ -102,9 +127,14 @@ class Description extends Component {
       tagId: appState.type,
       userId: appState.loginData.userId || loginData.userId,
       versionName: 'string',
-    }).then((res) => {
-      if (res.code === 201) {
+    }, this.loginData.token).then((res) => {
+      if (res.code === 200 || res.code === 201) {
         Tips.show('发布成功');
+        this.resetValue();
+        this.setState({
+          isSubmit: false,
+        });
+        browserHistory.push('/partylist');
       } else {
         Tips.show(res.message);
       }
@@ -112,11 +142,12 @@ class Description extends Component {
   };
 
   render() {
+    const { appState } = this.props;
     return (
-      <div styleName="description" className="a">
-        <Header title="聚会描述" />
+      <div styleName="description">
+        <Header title="聚会描述" leftBtnTxt='上一步' leftBtnCallBack={this.back} />
         <div styleName="editor">
-          <Ueditor id="editor" height={600} />
+          <Ueditor id="editor" height={600} value={appState.content} />
           <Layout.Row style={{ marginTop: '10px' }}>
             <Layout.Col span="12" style={{ textAlign: 'center' }}>
               <Button type="primary" style={{ width: '100px' }} onClick={this.preview}>预览</Button>
@@ -129,10 +160,12 @@ class Description extends Component {
         <div styleName="upload">
           <Upload
             className="upload-demo"
-            action={`http://app.${url}/v1/file/upload?kind=7`}
+            action={`${url}/v1/file/upload?kind=7`}
+            headers={{ Authorization: this.loginData.token }}
             onPreview={file => this.handlePreview(file)}
             onRemove={file => this.handleRemove(file)}
-            fileList={this.state.fileList}
+            onSuccess={(response, file, fileList) => this.setFileList(fileList)}
+            fileList={appState.fileList}
             listType="picture"
             name="uploadFile"
           >

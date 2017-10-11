@@ -57,7 +57,7 @@ module.exports = {
         },
       },
       { test: /\.(jpg|gif|png|svg|ico|jpeg)$/, loader: 'file-loader?name=images/[name].[ext]' },
-      { test: /\.(ttf|eot|woff|woff2)(\?.+)?$/, loader: 'file-loader?name=[hash:12].[ext]' },
+      { test: /\.(ttf|eot|woff|woff2)(\?.+)?$/, loader: 'file-loader?name=css/[hash:12].[ext]' },
       {
         test: /\.scss$/,
         exclude: path.resolve(__dirname, '../src/css'),  // 非src/css下的scss开启局部样式模式
